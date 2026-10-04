@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Orion Group – Payload Calculator</title>
+    <meta
+            name="description"
+            content="Simulador de capacidade de carga útil baseado na Equação do Foguetão de Tsiolkovsky – Orion Group."
+    />
+
+    <!-- Tipografia: Inter (Google Fonts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="orion-standalone">
+<div class="orion-app" id="orion-app">
+    <!-- ============================ CABEÇALHO ============================ -->
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand__mark" aria-hidden="true">✦</span>
+            <div>
+                <p class="brand__name">ORION GROUP</p>
+                <h1 class="brand__title">Payload Calculator</h1>
+            </div>
+        </div>
+        <p class="app-header__tag">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            Mission Planning Console · Tsiolkovsky Solver
+        </p>
+    </header>
+
+    <main class="dashboard">
+        <!-- ============ COLUNA 1 · PARÂMETROS ============ -->
+        <section class="panel panel--params" aria-labelledby="params-title">
+            <h2 class="panel__title" id="params-title">
+                <span aria-hidden="true">🎛️</span> Parâmetros de Lançamento
+            </h2>
+
+            <form id="params-form" novalidate autocomplete="off">
+                <!-- Massa seca -->
+                <div class="field">
+                    <div class="field__head">
+                        <label class="field__label" for="dry-mass">
+                            <span aria-hidden="true">🏗️</span> Massa Seca
+                        </label>
+                        <button type="button" class="tip" aria-describedby="tip-dry" aria-label="Ajuda: Massa Seca">?</button>
+                        <span class="tip__bubble" id="tip-dry" role="tooltip">
+                  Massa estrutural do foguetão vazio (tanques, motores, aviónica), sem propelente nem carga útil.
+                </span>
+                    </div>
+                    <div class="input-group">
+                        <input
+                                type="number"
+                                id="dry-mass"
+                                name="dryMass"
+                                value="186300"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                required
+                                aria-describedby="err-dry-mass"
+                        />
+                        <span class="unit" aria-hidden="true">kg</span>
+                    </div>
+                    <p class="field__error" id="err-dry-mass" role="alert"></p>
+                </div>
+
+                <!-- Massa de propelente -->
+                <div class="field">
+                    <div class="field__head">
+                        <label class="field__label" for="prop-mass">
+                            <span aria-hidden="true">⛽</span> Massa de Propelente
+                        </label>
+                        <button type="button" class="tip" aria-describedby="tip-prop" aria-label="Ajuda: Massa de Propelente">?</button>
+                        <span class="tip__bubble" id="tip-prop" role="tooltip">
+                  Massa total de combustível + oxidante carregada ao T=0. É o que se “gasta” na queima.
+                </span>
+                    </div>
+                    <div class="input-group">
+                        <input
+                                type="number"
+                                id="prop-mass"
+                                name="propellantMass"
+                                value="144000"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                required
+                                aria-describedby="err-prop-mass"
+                        />
+                        <span class="unit" aria-hidden="true">kg</span>
+                    </div>
+                    <p class="field__error" id="err-prop-mass" role="alert"></p>
+                </div>
+
+                <!-- Empuxo -->
+                <div class="field">
+                    <div class="field__head">
+                        <label class="field__label" for="thrust">
+                            <span aria-hidden="true">🔥</span> Empuxo do Motor
+                        </label>
+                        <button type="button" class="tip" aria-describedby="tip-thrust" aria-label="Ajuda: Empuxo do Motor">?</button>
+                        <span class="tip__bubble" id="tip-thrust" role="tooltip">
+                  Força total produzida pelos motores ao nível do mar. Tem de superar o peso para o foguetão sair do solo (TWR &gt; 1).
+                </span>
+                    </div>
+                    <div class="input-group">
+                        <input
+                                type="number"
+                                id="thrust"
+                                name="thrust"
+                                value="4682.5"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                required
+                                aria-describedby="err-thrust"
+                        />
+                        <span class="unit" aria-hidden="true">kN</span>
+                    </div>
+                    <p class="field__error" id="err-thrust" role="alert"></p>
+                </div>
+
+                <!-- Impulso específico -->
+                <div class="field">
+                    <div class="field__head">
+                        <label class="field__label" for="isp">
+                            <span aria-hidden="true">⚡</span> Impulso Específico
+                        </label>
+                        <button type="button" class="tip" aria-describedby="tip-isp" aria-label="Ajuda: Impulso Específico">?</button>
+                        <span class="tip__bubble" id="tip-isp" role="tooltip">
+                  Isp: “eficiência” do motor, em segundos. Velocidade de escape dos gases = Isp × g₀.
+                </span>
+                    </div>
+                    <div class="input-group">
+                        <input
+                                type="number"
+                                id="isp"
+                                name="isp"
+                                value="300"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                required
+                                aria-describedby="err-isp"
+                        />
+                        <span class="unit" aria-hidden="true">s</span>
+                    </div>
+                    <p class="field__error" id="err-isp" role="alert"></p>
+                </div>
+
+                <!-- Órbita alvo -->
+                <div class="field">
+                    <div class="field__head">
+                        <label class="field__label" for="orbit">
+                            <span aria-hidden="true">🛰️</span> Órbita Alvo
+                        </label>
+                        <button type="button" class="tip" aria-describedby="tip-orbit" aria-label="Ajuda: Órbita Alvo">?</button>
+                        <span class="tip__bubble" id="tip-orbit" role="tooltip">
+                  Delta-v total necessário desde o solo (valores típicos, já com perdas por gravidade e arrasto).
+                </span>
+                    </div>
+                    <div class="input-group input-group--select">
+                        <select id="orbit" name="orbit">
+                            <option value="9400" data-name="LEO" selected>LEO · Órbita Baixa — Δv ≈ 9 400 m/s</option>
+                            <option value="12500" data-name="MEO">MEO · Órbita Média — Δv ≈ 12 500 m/s</option>
+                            <option value="13900" data-name="GEO">GEO · Geoestacionária — Δv ≈ 13 900 m/s</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn--primary" id="calc-btn">
+                    <span aria-hidden="true">🚀</span> Calculate
+                </button>
+
+                <div class="preset-row">
+                    <button type="button" class="btn btn--ghost" id="reset-btn">↺ Dados oficiais Orion</button>
+                    <button type="button" class="btn btn--ghost" id="demo-btn">🧪 Cenário demo (GO)</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ============ COLUNA 2 · VISUALIZAÇÃO ============ -->
+        <section class="panel panel--blueprint" aria-labelledby="blueprint-title">
+            <h2 class="panel__title" id="blueprint-title">
+                <span aria-hidden="true">📐</span> Blueprint · Orion
+            </h2>
+
+            <!--
+              Para usar a TUA imagem: guarda-a em assets/images/orion-blueprint.png.
+              O script.js deteta o ficheiro e substitui o desenho SVG de reserva automaticamente.
+            -->
+            <div
+                    class="blueprint__stage"
+                    id="blueprint-stage"
+                    data-blueprint-src="assets/images/orion-blueprint.png"
+            >
+                <img class="blueprint__image" id="blueprint-image" alt="Planta técnica do foguetão Orion" hidden />
+
+                <svg
+                        class="blueprint__svg"
+                        id="blueprint-svg"
+                        viewBox="0 0 400 490"
+                        role="img"
+                        aria-labelledby="bp-title bp-desc"
+                        xmlns="http://www.w3.org/2000/svg"
+                >
+                    <title id="bp-title">Esquema do foguetão com cotas dinâmicas</title>
+                    <desc id="bp-desc">Esquema genérico com carga útil, propelente e massa seca.</desc>
+
+                    <defs>
+                        <radialGradient id="bp-glow" cx="50%" cy="0%" r="100%">
+                            <stop offset="0%" stop-color="#fff3d6" stop-opacity="0.95" />
+                            <stop offset="35%" stop-color="#fb923c" stop-opacity="0.8" />
+                            <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+                        </radialGradient>
+                    </defs>
+
+                    <!-- Fins -->
+                    <polygon class="bp-line bp-fill-soft" points="160,330 128,392 160,376" />
+                    <polygon class="bp-line bp-fill-soft" points="240,330 272,392 240,376" />
+
+                    <!-- Ogiva -->
+                    <path class="bp-line bp-fill-soft" d="M160 110 C160 72 184 48 200 34 C216 48 240 72 240 110 Z" />
+
+                    <!-- Segmentos de massa (alturas atualizadas por JS) -->
+                    <rect id="bp-payload" class="bp-seg bp-seg--payload" x="160" y="110" width="80" height="40" />
+                    <rect id="bp-prop" class="bp-seg bp-seg--prop" x="160" y="150" width="80" height="140" />
+                    <rect id="bp-dry" class="bp-seg bp-seg--dry" x="160" y="290" width="80" height="90" />
+
+                    <!-- Bocal -->
+                    <path class="bp-line bp-fill-soft" d="M178 380 L222 380 L232 415 L168 415 Z" />
+
+                    <!-- Chama de ignição (animada ao calcular) -->
+                    <g id="bp-flame" class="bp-flame">
+                        <ellipse cx="200" cy="432" rx="38" ry="30" fill="url(#bp-glow)" />
+                        <polygon points="180,415 220,415 200,458" fill="#fb923c" opacity="0.85" />
+                    </g>
+
+                    <!-- Cota total (esquerda) -->
+                    <path id="bp-dim-total" class="bp-dim" d="" />
+                    <text id="bp-text-total" class="bp-text bp-text--rotated" x="104" y="245" text-anchor="middle">M₀ —</text>
+
+                    <!-- Cotas por segmento (direita) -->
+                    <path id="bp-dim-payload" class="bp-dim" d="" />
+                    <path id="bp-dim-prop" class="bp-dim" d="" />
+                    <path id="bp-dim-dry" class="bp-dim" d="" />
+                    <text id="bp-text-payload" class="bp-text" x="276" y="130">—</text>
+                    <text id="bp-text-prop" class="bp-text" x="276" y="220">—</text>
+                    <text id="bp-text-dry" class="bp-text" x="276" y="335">—</text>
+
+                    <!-- Empuxo -->
+                    <text id="bp-text-thrust" class="bp-text bp-text--accent" x="200" y="482" text-anchor="middle">F —</text>
+                </svg>
+
+                <div class="blueprint__scan" aria-hidden="true"></div>
+            </div>
+
+            <p class="blueprint__caption">
+                <span class="legend-dot legend-dot--payload" aria-hidden="true"></span>Carga útil
+                <span class="legend-dot legend-dot--prop" aria-hidden="true"></span>Propelente
+                <span class="legend-dot legend-dot--dry" aria-hidden="true"></span>Massa seca
+            </p>
+        </section>
+
+        <!-- ============ COLUNA 3 · RESULTADOS ============ -->
+        <section class="panel panel--results" aria-labelledby="results-title">
+            <h2 class="panel__title" id="results-title">
+                <span aria-hidden="true">📡</span> Telemetria &amp; Resultados
+            </h2>
+
+            <p class="sr-only" id="sr-summary" aria-live="polite"></p>
+
+            <div class="payload-hero">
+                <p class="payload-hero__label">Capacidade de Carga Útil</p>
+                <p class="payload-hero__value">
+                    <output id="payload-value" for="dry-mass prop-mass thrust isp orbit">—</output>
+                    <span class="payload-hero__unit">kg</span>
+                </p>
+                <p class="payload-hero__sub" id="payload-sub">Prima “Calculate” para simular.</p>
+            </div>
+
+            <div class="status" id="mission-status" data-state="idle">
+                <span class="status__label-small">Mission Status</span>
+                <span class="status__badge" id="status-badge">STANDBY</span>
+                <p class="status__reason" id="status-reason">A aguardar cálculo.</p>
+            </div>
+
+            <div class="inline-alert" id="inline-alert" role="alert" hidden></div>
+
+            <dl class="telemetry">
+                <div class="telemetry__row">
+                    <dt>Δv ideal disponível</dt>
+                    <dd><span id="tm-dv-available">—</span> <small>m/s</small></dd>
+                </div>
+                <div class="telemetry__row">
+                    <dt>Δv exigido pela órbita</dt>
+                    <dd><span id="tm-dv-required">—</span> <small>m/s</small></dd>
+                </div>
+                <div class="telemetry__row">
+                    <dt>TWR em T=0</dt>
+                    <dd><span id="tm-twr">—</span></dd>
+                </div>
+                <div class="telemetry__row">
+                    <dt>Tempo de queima</dt>
+                    <dd><span id="tm-burn">—</span> <small>s</small></dd>
+                </div>
+                <div class="telemetry__row">
+                    <dt>Fluxo de massa ṁ</dt>
+                    <dd><span id="tm-flow">—</span> <small>kg/s</small></dd>
+                </div>
+            </dl>
+
+            <div class="chart-block">
+                <h3 class="chart-block__title">Distribuição da Massa Total</h3>
+                <div class="chart-wrap">
+                    <canvas id="mass-chart" role="img" aria-label="Gráfico de rosca com a distribuição da massa total"></canvas>
+                    <div class="chart-center" aria-hidden="true">
+                        <span class="chart-center__label">Massa total</span>
+                        <span class="chart-center__value" id="chart-total">—</span>
+                        <span class="chart-center__unit">kg</span>
+                    </div>
+                </div>
+
+                <ul class="mass-legend" id="mass-legend">
+                    <li>
+                        <span class="legend-dot legend-dot--payload" aria-hidden="true"></span>
+                        <span class="mass-legend__name">Carga útil</span>
+                        <span class="mass-legend__val" id="lg-payload">—</span>
+                    </li>
+                    <li>
+                        <span class="legend-dot legend-dot--prop" aria-hidden="true"></span>
+                        <span class="mass-legend__name">Propelente</span>
+                        <span class="mass-legend__val" id="lg-prop">—</span>
+                    </li>
+                    <li>
+                        <span class="legend-dot legend-dot--dry" aria-hidden="true"></span>
+                        <span class="mass-legend__name">Massa seca</span>
+                        <span class="mass-legend__val" id="lg-dry">—</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>
+            Δv = Isp · g₀ · ln(m₀ / m<sub>f</sub>) &nbsp;·&nbsp; Projeto escolar fictício — Orion Group © 2026
+        </p>
+    </footer>
+</div>
+
+<!-- Bibliotecas externas (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Lógica da aplicação -->
+<script src="script.js"></script>
+</body>
+</html>
